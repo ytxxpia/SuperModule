@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>网络连接 · 超级模块</title>
+    <!-- Font Awesome 5 图标库 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <!-- 二维码生成库 -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+    <style>
+        /* 与查询页面完全一致的风格 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #f2f4f8;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 16px;
+        }
+
+        .card {
+            width: 100%;
+            max-width: 500px;
+            background: white;
+            border-radius: 32px;
+            padding: 28px 24px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.02);
+        }
+
+        .card-header {
+            font-size: 1.8rem;
+            font-weight: 500;
+            color: #1e293b;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-header i {
+            color: #2563eb;
+            font-size: 2rem;
+        }
+
+        /* 网络选择器 */
+        .network-selector {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 28px;
+            background: #f1f5f9;
+            padding: 6px;
+            border-radius: 60px;
+        }
+
+        .network-btn {
+            flex: 1;
+            text-align: center;
+            padding: 12px 0;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            cursor: pointer;
+            background: transparent;
+            border: none;
+            color: #475569;
+            transition: all 0.15s;
+        }
+
+        .network-btn i {
+            margin-right: 6px;
+            font-size: 1rem;
+        }
+
+        .network-btn.active {
+            background: #2563eb;
+            color: white;
+        }
+
+        /* 输入区域 */
+        .input-area {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 28px;
+            border: 1px solid #e2e8f0;
+            border-radius: 60px;
+            padding: 4px 4px 4px 20px;
+            background: #ffffff;
+        }
+
+        .input-area i {
+            color: #94a3b8;
+            font-size: 1.3rem;
+            align-self: center;
+        }
+
+        .input-area input {
+            flex: 1;
+            border: none;
+            background: transparent;
+            padding: 14px 0;
+            font-size: 1.1rem;
+            outline: none;
+        }
+
+        .input-area input::placeholder {
+            color: #94a3b8;
+        }
+
+        .input-area button {
+            background: #2563eb;
+            border: none;
+            color: white;
+            font-size: 1rem;
+            padding: 10px 24px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: background 0.15s;
+        }
+
+        .input-area button:hover {
+            background: #1d4ed8;
+        }
+
+        /* 二维码卡片 */
+        .qr-section {
+            background: #f8fafc;
+            border-radius: 28px;
+            padding: 24px;
+            border: 1px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .qr-title {
+            font-size: 1.2rem;
+            color: #334155;
+            margin-bottom: 18px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        #qrcodeImg {
+            width: 200px;
+            height: 200px;
+            background: white;
+            padding: 12px;
+            border-radius: 24px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.02);
+            margin-bottom: 12px;
+        }
+
+        .save-hint {
+            color: #475569;
+            font-size: 0.9rem;
+            background: #ffffff;
+            padding: 6px 16px;
+            border-radius: 40px;
+            border: 1px solid #cbd5e1;
+        }
+
+        /* 状态消息 */
+        .status-msg {
+            margin-top: 20px;
+            font-size: 1rem;
+            padding: 16px 20px;
+            border-radius: 28px;
+            text-align: center;
+            line-height: 1.5;
+        }
+
+        .status-msg i {
+            margin-right: 8px;
+            font-size: 1.2rem;
+        }
+
+        .success {
+            background: #dcfce7;
+            color: #166534;
+            border: 1px solid #86efac;
+        }
+
+        .error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+
+        .footer-note {
+            margin-top: 20px;
+            font-size: 0.85rem;
+            color: #64748b;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="card-header">
+            <i class="fas fa-wifi"></i> 网络连接
+        </div>
+
+        <!-- 网络选择 -->
+        <div class="network-selector" id="networkSelector">
+            <button class="network-btn active" id="btnZY1"><i class="fas fa-network-wired"></i> ZY1</button>
+            <button class="network-btn" id="btnZY2"><i class="fas fa-network-wired"></i> ZY2</button>
+        </div>
+
+        <!-- 密码输入区域 -->
+        <div class="input-area">
+            <i class="fas fa-lock"></i>
+            <input type="password" id="passwordInput" placeholder="输入解密密码">
+            <button id="decryptBtn"><i class="fas fa-qrcode"></i> 生成二维码</button>
+        </div>
+
+        <!-- 二维码显示区 (初始隐藏) -->
+        <div id="qrSection" class="qr-section" style="display: none;">
+            <div class="qr-title">
+                <i class="fas fa-share-alt"></i> 长按保存二维码
+            </div>
+            <img id="qrcodeImg" alt="Wi-Fi二维码">
+            <div class="save-hint">
+                <i class="fas fa-long-press-alt"></i> 长按图片保存
+            </div>
+        </div>
+
+        <!-- 状态消息区 -->
+        <div id="statusMessage" class="status-msg" style="display: none;"></div>
+
+        <div class="footer-note">
+            <i class="fas fa-key"></i> 密钥文件 key.txt (AES-256-GCM)
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            // ---------- 状态 ----------
+            let currentNetwork = 'ZY1';
+            let cipherData = {};        // 存储 { ZY1: {salt, iv, ciphertext}, ZY2: ... }
+            let keyLoaded = false;
+            let loadError = false;
+
+            const btnZY1 = document.getElementById('btnZY1');
+            const btnZY2 = document.getElementById('btnZY2');
+            const passwordInput = document.getElementById('passwordInput');
+            const decryptBtn = document.getElementById('decryptBtn');
+            const qrSection = document.getElementById('qrSection');
+            const qrcodeImg = document.getElementById('qrcodeImg');
+            const statusDiv = document.getElementById('statusMessage');
+
+            // ---------- 写入 user 数据库的 log 存储 (密钥文件错误时使用) ----------
+            function writeLogToUserDB(errorDetail) {
+                return new Promise((resolve, reject) => {
+                    const request = indexedDB.open('user', 1);
+                    
+                    request.onupgradeneeded = (ev) => {
+                        const db = ev.target.result;
+                        if (!db.objectStoreNames.contains('log')) {
+                            db.createObjectStore('log', { autoIncrement: true });
+                        }
+                    };
+
+                    request.onsuccess = (ev) => {
+                        const db = ev.target.result;
+                        const tx = db.transaction('log', 'readwrite');
+                        const store = tx.objectStore('log');
+                        
+                        const record = {
+                            timestamp: new Date().toISOString(),
+                            event: 'key.txt missing or invalid',
+                            userAgent: navigator.userAgent,
+                            extra: errorDetail || ''
+                        };
+                        
+                        store.add(record);
+                        tx.oncomplete = () => db.close();
+                        resolve();
+                    };
+
+                    request.onerror = (err) => {
+                        console.warn('无法写入user数据库', err);
+                        reject(err);
+                    };
+                });
+            }
+
+            // 网络切换
+            btnZY1.addEventListener('click', () => {
+                btnZY1.classList.add('active');
+                btnZY2.classList.remove('active');
+                currentNetwork = 'ZY1';
+                qrSection.style.display = 'none';
+                statusDiv.style.display = 'none';
+            });
+
+            btnZY2.addEventListener('click', () => {
+                btnZY2.classList.add('active');
+                btnZY1.classList.remove('active');
+                currentNetwork = 'ZY2';
+                qrSection.style.display = 'none';
+                statusDiv.style.display = 'none';
+            });
+
+            // ---------- 加载 key.txt (JSON 格式) ----------
+            async function loadKeyFile() {
+                try {
+                    const resp = await fetch('key.txt');
+                    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+                    const text = await resp.text();
+                    const json = JSON.parse(text);
+                    if (!json.ZY1 || !json.ZY2) throw new Error('缺少 ZY1 或 ZY2 的配置');
+                    cipherData = json;
+                    keyLoaded = true;
+                } catch (err) {
+                    console.error('key.txt 加载失败', err);
+                    loadError = true;
+                    // 写入错误日志到 user 数据库
+                    writeLogToUserDB(err.message).catch(e => console.warn('日志写入失败', e));
+                    // 显示错误消息（使用FontAwesome图标）
+                    showStatusHTML('error', '<i class="fas fa-exclamation-triangle"></i> key.txt 文件无效或缺失');
+                }
+            }
+
+            // 显示状态消息（支持HTML）
+            function showStatusHTML(type, html) {
+                statusDiv.style.display = 'block';
+                statusDiv.className = `status-msg ${type}`;
+                statusDiv.innerHTML = html;
+            }
+
+            // Base64 <-> ArrayBuffer
+            function base64ToArrayBuffer(base64) {
+                const bin = atob(base64);
+                const bytes = new Uint8Array(bin.length);
+                for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+                return bytes.buffer;
+            }
+
+            // ---------- AES-256-GCM 解密 (PBKDF2) ----------
+            async function decryptWifiPassword(password, cipherObj) {
+                const salt = base64ToArrayBuffer(cipherObj.salt);
+                const iv = base64ToArrayBuffer(cipherObj.iv);
+                const ciphertext = base64ToArrayBuffer(cipherObj.ciphertext);
+
+                const enc = new TextEncoder();
+                const passwordBuffer = enc.encode(password);
+
+                const keyMaterial = await crypto.subtle.importKey(
+                    'raw', passwordBuffer, { name: 'PBKDF2' }, false, ['deriveKey']
+                );
+
+                const key = await crypto.subtle.deriveKey(
+                    {
+                        name: 'PBKDF2',
+                        salt: salt,
+                        iterations: 100000,
+                        hash: 'SHA-256'
+                    },
+                    keyMaterial,
+                    { name: 'AES-GCM', length: 256 },
+                    false,
+                    ['decrypt']
+                );
+
+                try {
+                    const decrypted = await crypto.subtle.decrypt(
+                        { name: 'AES-GCM', iv: iv },
+                        key,
+                        ciphertext
+                    );
+                    return new TextDecoder().decode(decrypted);
+                } catch {
+                    throw new Error('密码错误或数据损坏');
+                }
+            }
+
+            // 生成二维码
+            function generateWifiQR(ssid, password) {
+                const wifiString = `WIFI:S:${ssid};T:WPA;P:${password};;`;
+                const qr = qrcode(0, 'M');
+                qr.addData(wifiString);
+                qr.make();
+
+                const canvas = document.createElement('canvas');
+                const size = qr.getModuleCount();
+                const cellSize = 5;
+                canvas.width = size * cellSize;
+                canvas.height = size * cellSize;
+                const ctx = canvas.getContext('2d');
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = '#000000';
+                for (let row = 0; row < size; row++) {
+                    for (let col = 0; col < size; col++) {
+                        if (qr.isDark(row, col)) ctx.fillRect(col * cellSize, row * cellSize, cellSize, cellSize);
+                    }
+                }
+                qrcodeImg.src = canvas.toDataURL('image/png');
+                qrSection.style.display = 'flex';
+            }
+
+            // 处理解密
+            async function handleDecrypt() {
+                statusDiv.style.display = 'none';
+                qrSection.style.display = 'none';
+
+                if (loadError) {
+                    showStatusHTML('error', '<i class="fas fa-times-circle"></i> 密钥文件错误，无法解密');
+                    return;
+                }
+                if (!keyLoaded) {
+                    showStatusHTML('error', '<i class="fas fa-spinner fa-pulse"></i> 正在加载密钥文件...');
+                    return;
+                }
+
+                const password = passwordInput.value.trim();
+                if (!password) {
+                    showStatusHTML('error', '<i class="fas fa-lock"></i> 请输入解密密码');
+                    return;
+                }
+
+                const cipherObj = cipherData[currentNetwork];
+                if (!cipherObj || !cipherObj.salt || !cipherObj.iv || !cipherObj.ciphertext) {
+                    showStatusHTML('error', `<i class="fas fa-exclamation-circle"></i> key.txt 中缺少 ${currentNetwork} 的有效密文`);
+                    return;
+                }
+
+                showStatusHTML('success', '<i class="fas fa-hourglass-half"></i> 解密中...');
+
+                try {
+                    const wifiPassword = await decryptWifiPassword(password, cipherObj);
+                    generateWifiQR(currentNetwork, wifiPassword);
+                    statusDiv.style.display = 'none';
+                } catch (err) {
+                    showStatusHTML('error', `<i class="fas fa-times-circle"></i> ${err.message}`);
+                }
+            }
+
+            decryptBtn.addEventListener('click', handleDecrypt);
+            passwordInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') handleDecrypt();
+            });
+
+            loadKeyFile();
+        })();
+    </script>
+</body>
+</html>
