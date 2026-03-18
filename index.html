@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>超级模块</title>
+    <!-- Font Awesome 5 (CDN)  cog图标 & 关闭图标 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        /* 极简重置 + 布局 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            background-color: #fafafa;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        /* 页眉 —— 左右分布：图片居左，设置图标居右 */
+        .header {
+            height: 64px;
+            background: #ffffff;
+            border-bottom: 1px solid #e4e4e4;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;  /* 关键：左右分开 */
+            padding: 0 20px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+        }
+
+        .left-group {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .logo-img {
+            height: 40px;
+            width: auto;
+            display: block;
+            object-fit: contain;
+            /* 图片缺失时的占位 */
+            background-color: #f0f0f0;
+            border-radius: 4px;
+        }
+
+        .settings-icon {
+            font-size: 28px;
+            color: #2c3e50;
+            cursor: pointer;
+            transition: color 0.15s ease;
+            line-height: 1;
+        }
+
+        .settings-icon:hover {
+            color: #0077ff;
+        }
+
+        /* 下方主 iframe : 占据剩余高度, 无边框 */
+        .home-frame {
+            display: block;
+            width: 100%;
+            height: calc(100% - 64px);
+            border: none;
+            background: #ffffff;
+        }
+
+        /* ---------- 模态层 (完全沿用之前逻辑) ---------- */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(10, 10, 10, 0.4);
+            backdrop-filter: blur(2px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-card {
+            width: 90%;
+            max-width: 880px;
+            height: 82%;
+            background: #ffffff;
+            border-radius: 18px;
+            box-shadow: 0 20px 35px -8px rgba(0, 0, 0, 0.25);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            animation: modalFadeIn 0.2s ease;
+        }
+
+        @keyframes modalFadeIn {
+            from { opacity: 0.6; transform: scale(0.98); }
+            to   { opacity: 1; transform: scale(1); }
+        }
+
+        .modal-header {
+            flex-shrink: 0;
+            padding: 12px 18px;
+            display: flex;
+            justify-content: flex-end;
+            border-bottom: 1px solid #eeeeee;
+            background: #fcfcfc;
+        }
+
+        .close-btn {
+            font-size: 26px;
+            color: #4a5568;
+            cursor: pointer;
+            transition: color 0.15s;
+            line-height: 1;
+        }
+
+        .close-btn:hover {
+            color: #e53e3e;
+        }
+
+        .setting-frame {
+            width: 100%;
+            flex: 1;
+            border: none;
+            background: #ffffff;
+        }
+
+        .logo-img[alt] {
+            font-size: 0;
+        }
+
+        @media (max-width: 600px) {
+            .header {
+                padding: 0 14px;
+            }
+            .modal-card {
+                width: 95%;
+                height: 85%;
+                border-radius: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 页眉：图片居左，设置图标独立居右 (justify-content: space-between) -->
+    <header class="header">
+        <div class="left-group">
+            <img src="picture/01.png" alt="logo" class="logo-img">
+            <!-- 左侧组只有图片，没有设置图标了 -->
+        </div>
+        <!-- 右侧直接放置设置图标 (自然靠右) -->
+        <i class="fas fa-cog settings-icon" id="settingsTrigger"></i>
+    </header>
+
+    <!-- 下方主 iframe：始终加载同级目录的 home.html -->
+    <iframe class="home-frame" src="home.html" title="主页内容" frameborder="0"></iframe>
+
+    <!-- 模态框 (默认隐藏) 点击设置图标后出现，内部iframe加载setting.html -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal-card">
+            <div class="modal-header">
+                <i class="fas fa-times close-btn" id="closeModalBtn"></i>
+            </div>
+            <!-- 初始空白，点击设置时动态刷新加载setting.html -->
+            <iframe class="setting-frame" id="settingFrame" src="about:blank" title="设置面板" frameborder="0"></iframe>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            const modalOverlay = document.getElementById('modalOverlay');
+            const settingsIcon = document.getElementById('settingsTrigger');
+            const closeBtn = document.getElementById('closeModalBtn');
+            const settingFrame = document.getElementById('settingFrame');
+
+            function hideModal() {
+                modalOverlay.classList.remove('active');
+            }
+
+            function showModalWithFreshSetting() {
+                // 强制刷新 setting.html (加时间戳避免缓存)
+                const timestamp = Date.now();
+                settingFrame.src = 'setting.html?t=' + timestamp;
+                modalOverlay.classList.add('active');
+            }
+
+            // 点击设置图标
+            settingsIcon.addEventListener('click', function(e) {
+                e.stopPropagation();
+                if (modalOverlay.classList.contains('active')) {
+                    hideModal();
+                } else {
+                    showModalWithFreshSetting();
+                }
+            });
+
+            // 点击关闭按钮
+            closeBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                hideModal();
+            });
+
+            // 点击遮罩关闭
+            modalOverlay.addEventListener('click', function(e) {
+                if (e.target === modalOverlay) {
+                    hideModal();
+                }
+            });
+
+            // ESC 关闭
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && modalOverlay.classList.contains('active')) {
+                    hideModal();
+                }
+            });
+        })();
+    </script>
+
+    <!-- 设置图标已居右，标题已改为“超级模块” -->
+</body>
+</html>
