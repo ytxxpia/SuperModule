@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>超级模块 · 设置</title>
+    <!-- Font Awesome 5 (CDN) 用于所有图标装饰 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #ffffff;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+            padding: 24px 22px;
+            color: #1e293b;
+            height: 100%;
+            overflow-y: auto;
+        }
+
+        /* 设置主容器 */
+        .settings-container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* 每个设置组 (可包含多个item) */
+        .setting-group {
+            margin-bottom: 28px;
+            border-bottom: 1px solid #edf2f7;
+            padding-bottom: 16px;
+        }
+
+        .setting-group:last-child {
+            border-bottom: none;
+        }
+
+        /* 单个设置行 */
+        .setting-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 8px;
+            border-radius: 10px;
+            transition: background 0.1s ease;
+        }
+
+        .setting-item:hover {
+            background: #f8fafc;
+        }
+
+        .setting-label {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .setting-label i {
+            width: 24px;
+            font-size: 1.3rem;
+            color: #3b82f6;
+            text-align: center;
+        }
+
+        /* 次级缩进 (用于精准推送) */
+        .setting-item.sub-item {
+            padding-left: 48px;
+        }
+
+        /* 静态文本显示 (如语言) */
+        .static-value {
+            background: #f1f5f9;
+            padding: 6px 16px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #334155;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .static-value i {
+            font-size: 1rem;
+            color: #64748b;
+        }
+
+        /* 拨片开关 (toggle) 样式 */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 52px;
+            height: 28px;
+            flex-shrink: 0;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #cbd5e1;
+            transition: 0.2s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: 0.2s;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        input:checked + .slider {
+            background-color: #3b82f6;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(24px);
+        }
+
+        /* 数据获取按钮 */
+        .data-btn {
+            background: #eef2ff;
+            border: none;
+            border-radius: 40px;
+            padding: 8px 20px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #1e3a8a;
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: background 0.15s;
+            border: 1px solid #c7d2fe;
+        }
+
+        .data-btn i {
+            font-size: 1.1rem;
+        }
+
+        .data-btn:hover {
+            background: #dbeafe;
+        }
+
+        /* 数据显示区域 */
+        .data-display {
+            margin-top: 16px;
+            background: #0f172a;
+            color: #e2e8f0;
+            border-radius: 14px;
+            padding: 16px;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 13px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-break: break-word;
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #334155;
+        }
+
+        .data-display:empty {
+            display: none;
+        }
+
+        /* 开发者选项组初始隐藏，由JS控制显示 */
+        .dev-options-group {
+            margin-top: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="settings-container">
+        <!-- 推送设置组 (始终显示) -->
+        <div class="setting-group">
+            <!-- 推送总开关 -->
+            <div class="setting-item">
+                <div class="setting-label">
+                    <i class="fas fa-bell"></i>
+                    <span>推送设置</span>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="pushNotificationsEnabled">
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <!-- 精准推送子项 (默认隐藏，由推送状态控制) -->
+            <div class="setting-item sub-item" id="precisePushRow" style="display: none;">
+                <div class="setting-label">
+                    <i class="fas fa-bullseye"></i>
+                    <span>精准推送设置</span>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="precisePushEnabled">
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
+
+        <!-- 开发者选项主开关 -->
+        <div class="setting-group">
+            <div class="setting-item">
+                <div class="setting-label">
+                    <i class="fas fa-code"></i>
+                    <span>开发者选项</span>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="developerOptionsEnabled">
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <!-- 开发者选项内部区域 (默认隐藏，由主开关控制) -->
+            <div class="dev-options-group" id="devOptionsGroup" style="display: none;">
+                <!-- 语言 (静态中文) -->
+                <div class="setting-item">
+                    <div class="setting-label">
+                        <i class="fas fa-language"></i>
+                        <span>语言</span>
+                    </div>
+                    <div class="static-value">
+                        <i class="fas fa-check-circle"></i> 中文 (仅支持)
+                    </div>
+                </div>
+
+                <!-- 用户体验改进计划 -->
+                <div class="setting-item">
+                    <div class="setting-label">
+                        <i class="fas fa-chart-line"></i>
+                        <span>用户体验改进计划</span>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="userExperienceImprovementEnabled">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <!-- 调试模式 -->
+                <div class="setting-item">
+                    <div class="setting-label">
+                        <i class="fas fa-bug"></i>
+                        <span>调试模式</span>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="debugModeEnabled">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <!-- 数据获取按钮 + 显示区域 -->
+                <div class="setting-item" style="flex-wrap: wrap;">
+                    <div class="setting-label">
+                        <i class="fas fa-database"></i>
+                        <span>用户数据 (user 库)</span>
+                    </div>
+                    <button class="data-btn" id="loadUserDataBtn">
+                        <i class="fas fa-cloud-download-alt"></i> 加载
+                    </button>
+                </div>
+                <pre class="data-display" id="userDataDisplay">点击加载显示数据…</pre>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            // ---------- IndexedDB 工具函数 (操作 super 数据库) ----------
+            const DB_NAME = 'super';
+            const STORE_NAME = 'settings';
+            const DB_VERSION = 1;
+
+            // 定义所有设置键 (与题目一致)
+            const SETTINGS_KEYS = [
+                'userExperienceImprovementEnabled', // 用户体验改进计划
+                'pushNotificationsEnabled',         // 推送设置
+                'precisePushEnabled',               // 精准推送
+                'developerOptionsEnabled',           // 开发者选项
+                'debugModeEnabled',                  // 调试模式
+                'language'                           // 语言 (字符串)
+            ];
+
+            // 默认值
+            const DEFAULT_SETTINGS = {
+                userExperienceImprovementEnabled: false,
+                pushNotificationsEnabled: true,      // 默认开启推送以便演示子项
+                precisePushEnabled: false,
+                developerOptionsEnabled: false,
+                debugModeEnabled: false,
+                language: 'zh'                        // 固定中文
+            };
+
+            // 打开数据库并确保对象存储存在 (如果不存在则创建)
+            function openDB() {
+                return new Promise((resolve, reject) => {
+                    const request = indexedDB.open(DB_NAME, DB_VERSION);
+                    request.onerror = () => reject(request.error);
+                    request.onsuccess = () => resolve(request.result);
+                    request.onupgradeneeded = (ev) => {
+                        const db = ev.target.result;
+                        if (!db.objectStoreNames.contains(STORE_NAME)) {
+                            // 创建存储，使用 key 作为主键
+                            db.createObjectStore(STORE_NAME, { keyPath: 'key' });
+                        }
+                    };
+                });
+            }
+
+            // 获取某个键的值
+            async function getSetting(key) {
+                const db = await openDB();
+                return new Promise((resolve, reject) => {
+                    const tx = db.transaction(STORE_NAME, 'readonly');
+                    const store = tx.objectStore(STORE_NAME);
+                    const req = store.get(key);
+                    req.onsuccess = () => resolve(req.result ? req.result.value : undefined);
+                    req.onerror = () => reject(req.error);
+                    tx.oncomplete = () => db.close();
+                });
+            }
+
+            // 批量获取所有设置 (用于初始化)
+            async function getAllSettings() {
+                const db = await openDB();
+                return new Promise((resolve, reject) => {
+                    const tx = db.transaction(STORE_NAME, 'readonly');
+                    const store = tx.objectStore(STORE_NAME);
+                    const req = store.getAll();
+                    req.onsuccess = () => {
+                        const records = req.result || [];
+                        const settings = {};
+                        records.forEach(rec => settings[rec.key] = rec.value);
+                        resolve(settings);
+                    };
+                    req.onerror = () => reject(req.error);
+                    tx.oncomplete = () => db.close();
+                });
+            }
+
+            // 保存单个设置
+            async function saveSetting(key, value) {
+                const db = await openDB();
+                return new Promise((resolve, reject) => {
+                    const tx = db.transaction(STORE_NAME, 'readwrite');
+                    const store = tx.objectStore(STORE_NAME);
+                    const req = store.put({ key, value });
+                    req.onsuccess = () => resolve();
+                    req.onerror = () => reject(req.error);
+                    tx.oncomplete = () => db.close();
+                });
+            }
+
+            // 初始化数据库: 如果缺少某些键则写入默认值
+            async function initSettings() {
+                const existing = await getAllSettings();
+                for (const key of SETTINGS_KEYS) {
+                    if (!(key in existing)) {
+                        await saveSetting(key, DEFAULT_SETTINGS[key]);
+                    }
+                }
+                // 确保 language 永远是 zh (防止手动篡改)
+                await saveSetting('language', 'zh');
+            }
+
+            // ---------- UI 元素绑定 ----------
+            const pushCheck = document.getElementById('pushNotificationsEnabled');
+            const preciseRow = document.getElementById('precisePushRow');
+            const preciseCheck = document.getElementById('precisePushEnabled');
+            const devCheck = document.getElementById('developerOptionsEnabled');
+            const devGroup = document.getElementById('devOptionsGroup');
+            const userExpCheck = document.getElementById('userExperienceImprovementEnabled');
+            const debugCheck = document.getElementById('debugModeEnabled');
+
+            // 数据获取相关
+            const loadUserBtn = document.getElementById('loadUserDataBtn');
+            const userDisplay = document.getElementById('userDataDisplay');
+
+            // ---------- 从数据库加载设置到 UI ----------
+            async function loadSettingsToUI() {
+                await initSettings();  // 确保默认值存在 (若super库不存在则会创建)
+
+                // 读取所有设置 (包括刚初始化的)
+                const settings = await getAllSettings();
+
+                // 推送设置
+                if (settings.pushNotificationsEnabled !== undefined) {
+                    pushCheck.checked = settings.pushNotificationsEnabled;
+                } else {
+                    pushCheck.checked = DEFAULT_SETTINGS.pushNotificationsEnabled;
+                }
+
+                // 精准推送 (值可能不存在)
+                if (settings.precisePushEnabled !== undefined) {
+                    preciseCheck.checked = settings.precisePushEnabled;
+                } else {
+                    preciseCheck.checked = DEFAULT_SETTINGS.precisePushEnabled;
+                }
+
+                // 开发者选项
+                if (settings.developerOptionsEnabled !== undefined) {
+                    devCheck.checked = settings.developerOptionsEnabled;
+                } else {
+                    devCheck.checked = DEFAULT_SETTINGS.developerOptionsEnabled;
+                }
+
+                // 用户体验改进
+                if (settings.userExperienceImprovementEnabled !== undefined) {
+                    userExpCheck.checked = settings.userExperienceImprovementEnabled;
+                } else {
+                    userExpCheck.checked = DEFAULT_SETTINGS.userExperienceImprovementEnabled;
+                }
+
+                // 调试模式
+                if (settings.debugModeEnabled !== undefined) {
+                    debugCheck.checked = settings.debugModeEnabled;
+                } else {
+                    debugCheck.checked = DEFAULT_SETTINGS.debugModeEnabled;
+                }
+
+                // 语言无需加载到开关, 已经静态显示中文
+
+                // 根据当前推送状态显示/隐藏精准推送行
+                togglePreciseRow(pushCheck.checked);
+                // 根据开发者选项状态显示/隐藏内部组
+                toggleDevGroup(devCheck.checked);
+            }
+
+            // 控制精准推送行显示
+            function togglePreciseRow(show) {
+                preciseRow.style.display = show ? 'flex' : 'none';
+                // 如果推送关闭，强制精准推送值为 false 并保存 (避免歧义)
+                if (!show) {
+                    preciseCheck.checked = false;
+                    saveSetting('precisePushEnabled', false);
+                }
+            }
+
+            // 控制开发者选项内部组显示
+            function toggleDevGroup(show) {
+                devGroup.style.display = show ? 'block' : 'none';
+            }
+
+            // ---------- 监听UI变化，保存到数据库 ----------
+            pushCheck.addEventListener('change', async (e) => {
+                const val = e.target.checked;
+                await saveSetting('pushNotificationsEnabled', val);
+                togglePreciseRow(val);
+                // 如果推送关闭，上面 toggle 内已经将精准设为 false 并保存，但需确保数据库更新
+                if (!val) {
+                    // 已由 togglePreciseRow 处理
+                } else {
+                    // 推送开启时，但精准推送可能之前有保存值，但不需要额外操作
+                }
+            });
+
+            preciseCheck.addEventListener('change', async (e) => {
+                await saveSetting('precisePushEnabled', e.target.checked);
+            });
+
+            devCheck.addEventListener('change', async (e) => {
+                const val = e.target.checked;
+                await saveSetting('developerOptionsEnabled', val);
+                toggleDevGroup(val);
+            });
+
+            userExpCheck.addEventListener('change', async (e) => {
+                await saveSetting('userExperienceImprovementEnabled', e.target.checked);
+            });
+
+            debugCheck.addEventListener('change', async (e) => {
+                await saveSetting('debugModeEnabled', e.target.checked);
+            });
+
+            // 语言固定，无需监听，但确保数据库中一直是 zh
+            // 可以在初始化时固定，并在任何可能修改的地方维护；但我们不提供修改界面，所以安全。
+
+            // ---------- 数据获取: 从 IndexedDB 数据库「user」读取所有内容 ----------
+            async function loadUserDatabase() {
+                // 尝试打开数据库 "user" (版本1)
+                return new Promise((resolve, reject) => {
+                    const request = indexedDB.open('user');  // 不指定版本，只读打开
+                    request.onsuccess = (event) => {
+                        const db = event.target.result;
+                        // 获取所有对象存储名称
+                        const storeNames = db.objectStoreNames;
+                        if (storeNames.length === 0) {
+                            db.close();
+                            resolve({ error: '数据库「user」中无任何对象存储' });
+                            return;
+                        }
+
+                        // 为了演示，从第一个对象存储读取所有数据（常见情况）
+                        const firstStore = storeNames[0];
+                        const tx = db.transaction(firstStore, 'readonly');
+                        const store = tx.objectStore(firstStore);
+                        const getAllReq = store.getAll();
+
+                        getAllReq.onsuccess = () => {
+                            const records = getAllReq.result;
+                            db.close();
+                            resolve({ store: firstStore, data: records });
+                        };
+
+                        getAllReq.onerror = (err) => {
+                            db.close();
+                            reject(err);
+                        };
+                    };
+
+                    request.onerror = (err) => {
+                        // 如果数据库不存在，则返回友好信息 (并使用FontAwesome图标)
+                        if (err.target.error.name === 'NotFoundError') {
+                            resolve({ error: '数据库「user」不存在' });
+                        } else {
+                            reject(err.target.error);
+                        }
+                    };
+
+                    request.onupgradeneeded = () => {
+                        // 如果数据库需要升级但我们是只读打开，不会触发；但如果数据库不存在，onupgradeneeded 不会调用，直接进入 onerror。
+                        // 所以 onerror 已处理。
+                    };
+                });
+            }
+
+            loadUserBtn.addEventListener('click', async () => {
+                userDisplay.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> 加载中...';
+                try {
+                    const result = await loadUserDatabase();
+                    if (result.error) {
+                        // 使用 Font Awesome 感叹号图标替换纯文本
+                        userDisplay.innerHTML = '<i class="fas fa-exclamation-triangle" style="color: #fbbf24;"></i> ' + result.error;
+                    } else {
+                        // 格式化输出
+                        const output = JSON.stringify(result.data, null, 2);
+                        userDisplay.innerHTML = `<i class="fas fa-check-circle" style="color: #4ade80;"></i> 对象存储: ${result.store} | 记录数: ${result.data.length}\n\n${output}`;
+                    }
+                } catch (err) {
+                    userDisplay.innerHTML = '<i class="fas fa-times-circle" style="color: #f87171;"></i> 读取失败: ' + (err.message || err);
+                }
+            });
+
+            // ---------- 启动: 加载设置到界面 ----------
+            loadSettingsToUI().catch(err => {
+                console.error('初始化设置失败', err);
+                // 可以简单提示
+                document.body.innerHTML += `<div style="color:red;">设置加载失败: ${err.message}</div>`;
+            });
+
+        })();
+    </script>
+</body>
+</html>
