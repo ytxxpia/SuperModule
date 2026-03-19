@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>超级模块 · 主页</title>
-    <!-- Font Awesome 5 (CDN) 图标库 -->
+    <!-- Font Awesome 5 图标库 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <style>
         * {
@@ -14,7 +14,8 @@
         }
 
         body {
-            background: #f2f4f8;
+            /* 背景渐变让毛玻璃效果可见 */
+            background: linear-gradient(145deg, #d9eaff 0%, #ffffff 100%);
             font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
             min-height: 100vh;
             display: flex;
@@ -32,60 +33,68 @@
             margin: 0 auto;
         }
 
-        /* 卡片模块 —— 横条样式，无阴影 */
+        /* 卡片模块 —— 横条形状 (长方形) */
         .card {
             position: relative;
             width: 100%;
-            height: 120px;           /* 固定高度，形成横条 */
+            height: 84px;                       /* 固定高度，横条 */
             border-radius: 28px;
             cursor: pointer;
-            background-color: #ccc;  /* fallback, 由行内背景色覆盖 */
-            box-shadow: none;
-            border: none;
-            flex-shrink: 0;
-            transition: none;
+            /* 白色到浅蓝渐变，半透明实现毛玻璃基础 */
+            background: linear-gradient(135deg, rgba(255,255,255,0.7), rgba(200,225,255,0.7));
+            backdrop-filter: blur(8px);          /* 毛玻璃效果 */
+            -webkit-backdrop-filter: blur(8px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+            border: 1px solid rgba(255,255,255,0.5);
+            transition: transform 0.1s ease;
         }
 
-        /* 左下角放大图标 —— 无阴影 */
+        .card:hover {
+            transform: scale(1.02);
+        }
+
+        /* 左下角图标 —— 蓝色，缩小，左上角5%剪裁 */
         .card-icon {
             position: absolute;
-            left: 20px;
-            bottom: 15px;
-            font-size: 4.2rem;        /* 适合横条高度 */
-            color: rgba(0, 0, 0, 0.3); /* 深色半透明，比背景深 */
+            left: 10px;                          /* 略靠边缘 */
+            bottom: 8px;
+            font-size: 3.8rem;                    /* 适当缩小 */
+            color: #2563eb;                       /* 网络连接图标蓝色 */
             line-height: 1;
             pointer-events: none;
-            text-shadow: none;
+            text-shadow: 0 2px 6px rgba(37,99,235,0.2);
+            /* 左上角5%剪裁效果 */
+            clip-path: polygon(5% 0, 100% 0, 100% 100%, 0 100%, 0 5%);
         }
 
-        /* 卡片文字：居中偏右，深色，无阴影 */
+        /* 卡片文字：居中偏右，蓝色，无阴影 */
         .card-text {
             position: absolute;
-            right: 28px;
+            right: 24px;
             top: 50%;
             transform: translateY(-50%);
-            font-size: 2rem;
+            font-size: 1.8rem;
             font-weight: 700;
-            color: #111;               /* 深色无阴影 */
+            color: #2563eb;                        /* 蓝色 */
             text-align: right;
             line-height: 1.2;
             pointer-events: none;
-            text-shadow: none;
+            text-shadow: 0 2px 4px rgba(255,255,255,0.8);
         }
 
         /* 小屏幕适配 */
         @media (max-width: 500px) {
             .card {
-                height: 100px;
+                height: 70px;                      /* 等比缩小 */
             }
             .card-icon {
-                font-size: 3.5rem;
-                left: 15px;
-                bottom: 12px;
+                font-size: 3.2rem;
+                left: 8px;
+                bottom: 6px;
             }
             .card-text {
-                font-size: 1.6rem;
-                right: 20px;
+                font-size: 1.5rem;
+                right: 18px;
             }
         }
 
@@ -96,7 +105,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.7);
+            background-color: rgba(0, 0, 0, 0.6);
             backdrop-filter: blur(5px);
             display: none;
             align-items: center;
@@ -148,32 +157,32 @@
 </head>
 <body>
     <div class="vertical-list">
-        <!-- 模块1：物品查询 (背景 #456995) -->
-        <div class="card" style="background-color: #456995;" id="module1">
+        <!-- 模块1：物品查询 -->
+        <div class="card" id="module1">
             <i class="fas fa-search card-icon"></i>
             <span class="card-text">物品查询</span>
         </div>
 
-        <!-- 模块2：拍照搜索 (背景 #79FF93) -->
-        <div class="card" style="background-color: #79FF93;" id="module2">
+        <!-- 模块2：拍照搜索 -->
+        <div class="card" id="module2">
             <i class="fas fa-camera card-icon"></i>
             <span class="card-text">拍照搜索</span>
         </div>
 
-        <!-- 模块3：电路图查看 (背景 #FFD291) 点击弹出模态框 -->
-        <div class="card" style="background-color: #FFD291;" id="module3">
+        <!-- 模块3：电路图查看 (点击弹出模态框) -->
+        <div class="card" id="module3">
             <i class="fas fa-bolt card-icon"></i>
             <span class="card-text">电路图查看</span>
         </div>
 
-        <!-- 模块4：网络连接 (背景 #FF9691) -->
-        <div class="card" style="background-color: #FF9691;" id="module4">
+        <!-- 模块4：网络连接 -->
+        <div class="card" id="module4">
             <i class="fas fa-wifi card-icon"></i>
             <span class="card-text">网络连接</span>
         </div>
 
-        <!-- 模块5：用户体验改进计划 (背景 #FFF891) -->
-        <div class="card" style="background-color: #FFF891;" id="module5">
+        <!-- 模块5：用户体验改进计划 -->
+        <div class="card" id="module5">
             <i class="fas fa-smile card-icon"></i>
             <span class="card-text">用户体验<br>改进计划</span>
         </div>
@@ -199,34 +208,28 @@
             const modalImg = document.getElementById('modalImg');
             const closeBtn = document.getElementById('closeModalBtn');
 
-            // 模块1 跳转
             module1.addEventListener('click', () => {
                 window.location.href = 'search/01.html';
             });
 
-            // 模块2 跳转
             module2.addEventListener('click', () => {
                 window.location.href = 'psearch/01.html';
             });
 
-            // 模块3 显示模态框加载图片
             module3.addEventListener('click', (e) => {
                 e.stopPropagation();
                 modalImg.src = 'electricity/01.png';
                 modalOverlay.classList.add('active');
             });
 
-            // 模块4 跳转
             module4.addEventListener('click', () => {
                 window.location.href = 'wifi/01.html';
             });
 
-            // 模块5 跳转
             module5.addEventListener('click', () => {
                 window.location.href = 'user/01.html';
             });
 
-            // 关闭模态框
             closeBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 modalOverlay.classList.remove('active');
